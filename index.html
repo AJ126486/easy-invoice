@@ -2,303 +2,158 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Easy Invoice</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 2rem;
-      background-color: #f4f6f9;
-      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f2f2f2;
+    }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, textarea, select, button {
+      margin-top: 10px;
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
     }
     h1 {
       text-align: center;
+      color: #333;
     }
-    .lang-buttons {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    button {
-      margin: 0.5rem 0.5rem;
-      padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 6px;
-      background-color: #007bff;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    .content {
-      text-align: center;
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-    }
-
-    .invoice-form {
-      background: white;
-      padding: 1.5rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 900px;
-      margin: auto;
-    }
-    .invoice-form h2 {
-      margin-top: 1rem;
-    }
-    .form-group {
+    .row {
       display: flex;
-      flex-direction: column;
-      margin-bottom: 1rem;
+      gap: 10px;
     }
-    .form-group label {
-      margin-bottom: 0.3rem;
+    .row > div {
+      flex: 1;
     }
-    .form-group input {
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+    .logo-preview {
+      max-height: 80px;
+      margin-top: 10px;
     }
-
-    table {
-      width: 100%;
-      margin-top: 1rem;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 0.5rem;
-      text-align: center;
-    }
-
-    .total {
+    .language-selector {
       text-align: right;
-      font-size: 1.2rem;
-      margin-top: 1rem;
+      margin-bottom: 10px;
     }
-
-    .pdf-button {
-      margin-top: 1.5rem;
-      text-align: center;
+    .language-selector button {
+      margin-left: 5px;
     }
   </style>
 </head>
 <body>
-  <h1>Easy Invoice</h1>
+  <div class="container">
+    <div class="language-selector">
+      <button onclick="setLang('en')">EN</button>
+      <button onclick="setLang('zh')">中文</button>
+      <button onclick="setLang('ja')">日本語</button>
+      <button onclick="setLang('ko')">한국어</button>
+    </div>
 
-  <div class="lang-buttons">
-    <button onclick="setLanguage('zh')">中文</button>
-    <button onclick="setLanguage('en')">English</button>
-    <button onclick="setLanguage('ja')">日本語</button>
-    <button onclick="setLanguage('ko')">한국어</button>
+    <h1 id="title">Easy Invoice</h1>
+
+    <label id="lbl_logo">Upload Logo:</label>
+    <input type="file" accept="image/*" id="logoInput">
+    <img id="logoPreview" class="logo-preview" />
+
+    <label id="lbl_company">Company Name</label>
+    <input type="text" id="companyName" placeholder="Company Inc." />
+
+    <label id="lbl_address">Address</label>
+    <textarea id="companyAddress" placeholder="123 Main St, City, Country"></textarea>
+
+    <label id="lbl_phone">Phone</label>
+    <input type="text" id="companyPhone" placeholder="+1234567890" />
+
+    <label id="lbl_invoice">Invoice Items (format: Item | Qty | Price)</label>
+    <textarea id="invoiceItems" placeholder="Widget A | 2 | 100&#10;Widget B | 1 | 200"></textarea>
+
+    <button onclick="generatePDF()">Download PDF</button>
   </div>
 
-  <div class="content" id="content"></div>
-
-  <div class="invoice-form" id="invoiceArea">
-    <h2 id="formTitle">Invoice Editor</h2>
-
-    <div class="form-group">
-      <label id="labelTitle">Invoice Title</label>
-      <input id="invoiceTitle" type="text" placeholder="Enter invoice title" />
-    </div>
-
-    <div class="form-group">
-      <label id="labelDate">Date</label>
-      <input id="invoiceDate" type="date" />
-    </div>
-
-    <div class="form-group">
-      <label id="labelNumber">Invoice Number</label>
-      <input id="invoiceNumber" type="text" placeholder="e.g. INV-2025-001" />
-    </div>
-
-    <h2 id="clientInfo">Client Info</h2>
-
-    <div class="form-group">
-      <label id="labelClient">Company Name</label>
-      <input id="clientName" type="text" />
-    </div>
-
-    <div class="form-group">
-      <label id="labelAddress">Address</label>
-      <input id="clientAddress" type="text" />
-    </div>
-
-    <div class="form-group">
-      <label id="labelEmail">Email</label>
-      <input id="clientEmail" type="email" />
-    </div>
-
-    <h2 id="itemsTitle">Items</h2>
-
-    <table id="itemTable">
-      <thead>
-        <tr>
-          <th id="descHead">Description</th>
-          <th id="priceHead">Price</th>
-          <th id="qtyHead">Quantity</th>
-          <th id="totalHead">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><input type="text" placeholder="Item description"/></td>
-          <td><input type="number" value="0" onchange="calculateTotal()" /></td>
-          <td><input type="number" value="1" onchange="calculateTotal()" /></td>
-          <td class="line-total">$0.00</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <button onclick="addItemRow()">➕ 添加项目</button>
-
-    <div class="total" id="grandTotal">Grand Total: $0.00</div>
-
-    <div class="pdf-button">
-      <button onclick="downloadPDF()">📄 导出 PDF</button>
-    </div>
-  </div>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const translations = {
-      zh: {
-        welcome: "欢迎使用 Easy Invoice — 简单高效的在线开票工具。",
-        formTitle: "发票编辑器",
-        labelTitle: "发票标题",
-        labelDate: "日期",
-        labelNumber: "发票编号",
-        clientInfo: "客户信息",
-        labelClient: "公司名称",
-        labelAddress: "地址",
-        labelEmail: "邮箱",
-        itemsTitle: "项目列表",
-        descHead: "项目描述",
-        priceHead: "单价",
-        qtyHead: "数量",
-        totalHead: "金额",
-        grandTotal: "总计"
-      },
-      en: {
-        welcome: "Welcome to Easy Invoice — the simple and powerful online invoicing tool.",
-        formTitle: "Invoice Editor",
-        labelTitle: "Invoice Title",
-        labelDate: "Date",
-        labelNumber: "Invoice Number",
-        clientInfo: "Client Info",
-        labelClient: "Company Name",
-        labelAddress: "Address",
-        labelEmail: "Email",
-        itemsTitle: "Items",
-        descHead: "Description",
-        priceHead: "Price",
-        qtyHead: "Quantity",
-        totalHead: "Total",
-        grandTotal: "Grand Total"
-      },
-      ja: {
-        welcome: "Easy Invoice へようこそ — シンプルで強力なオンライン請求書作成ツールです。",
-        formTitle: "請求書エディタ",
-        labelTitle: "請求書のタイトル",
-        labelDate: "日付",
-        labelNumber: "請求書番号",
-        clientInfo: "クライアント情報",
-        labelClient: "会社名",
-        labelAddress: "住所",
-        labelEmail: "メールアドレス",
-        itemsTitle: "項目一覧",
-        descHead: "説明",
-        priceHead: "単価",
-        qtyHead: "数量",
-        totalHead: "合計",
-        grandTotal: "総合計"
-      },
-      ko: {
-        welcome: "Easy Invoice에 오신 것을 환영합니다 — 쉽고 강력한 온라인 인보이스 도구입니다.",
-        formTitle: "인보이스 편집기",
-        labelTitle: "인보이스 제목",
-        labelDate: "날짜",
-        labelNumber: "인보이스 번호",
-        clientInfo: "고객 정보",
-        labelClient: "회사명",
-        labelAddress: "주소",
-        labelEmail: "이메일",
-        itemsTitle: "항목 목록",
-        descHead: "설명",
-        priceHead: "단가",
-        qtyHead: "수량",
-        totalHead: "합계",
-        grandTotal: "총합계"
-      }
+    const labels = {
+      en: { title: "Easy Invoice", lbl_logo: "Upload Logo:", lbl_company: "Company Name", lbl_address: "Address", lbl_phone: "Phone", lbl_invoice: "Invoice Items (format: Item | Qty | Price)" },
+      zh: { title: "简易发票", lbl_logo: "上传 Logo：", lbl_company: "公司名称", lbl_address: "地址", lbl_phone: "电话", lbl_invoice: "发票项目（格式：项目 | 数量 | 单价）" },
+      ja: { title: "簡易請求書", lbl_logo: "ロゴアップロード：", lbl_company: "会社名", lbl_address: "住所", lbl_phone: "電話番号", lbl_invoice: "請求項目（形式：項目 | 数量 | 単価）" },
+      ko: { title: "간편 인보이스", lbl_logo: "로고 업로드:", lbl_company: "회사 이름", lbl_address: "주소", lbl_phone: "전화번호", lbl_invoice: "청구 항목 (형식: 항목 | 수량 | 가격)" },
     };
 
-    function setLanguage(lang) {
-      const t = translations[lang];
-      document.getElementById("content").innerText = t.welcome;
-      document.getElementById("formTitle").innerText = t.formTitle;
-      document.getElementById("labelTitle").innerText = t.labelTitle;
-      document.getElementById("labelDate").innerText = t.labelDate;
-      document.getElementById("labelNumber").innerText = t.labelNumber;
-      document.getElementById("clientInfo").innerText = t.clientInfo;
-      document.getElementById("labelClient").innerText = t.labelClient;
-      document.getElementById("labelAddress").innerText = t.labelAddress;
-      document.getElementById("labelEmail").innerText = t.labelEmail;
-      document.getElementById("itemsTitle").innerText = t.itemsTitle;
-      document.getElementById("descHead").innerText = t.descHead;
-      document.getElementById("priceHead").innerText = t.priceHead;
-      document.getElementById("qtyHead").innerText = t.qtyHead;
-      document.getElementById("totalHead").innerText = t.totalHead;
-      calculateTotal();
+    function setLang(lang) {
+      document.getElementById('title').textContent = labels[lang].title;
+      document.getElementById('lbl_logo').textContent = labels[lang].lbl_logo;
+      document.getElementById('lbl_company').textContent = labels[lang].lbl_company;
+      document.getElementById('lbl_address').textContent = labels[lang].lbl_address;
+      document.getElementById('lbl_phone').textContent = labels[lang].lbl_phone;
+      document.getElementById('lbl_invoice').textContent = labels[lang].lbl_invoice;
     }
 
-    function calculateTotal() {
-      const rows = document.querySelectorAll("#itemTable tbody tr");
-      let grand = 0;
-      rows.forEach(row => {
-        const price = parseFloat(row.cells[1].children[0].value) || 0;
-        const qty = parseFloat(row.cells[2].children[0].value) || 0;
-        const total = price * qty;
-        row.cells[3].innerText = `$${total.toFixed(2)}`;
-        grand += total;
-      });
-      const lang = localStorage.getItem("lang") || "en";
-      const t = translations[lang];
-      document.getElementById("grandTotal").innerText = `${t.grandTotal}: $${grand.toFixed(2)}`;
-    }
+    let logoData = null;
+    document.getElementById('logoInput').addEventListener('change', function (e) {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        logoData = event.target.result;
+        document.getElementById('logoPreview').src = logoData;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    });
 
-    function addItemRow() {
-      const tbody = document.querySelector("#itemTable tbody");
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input type="text" placeholder="Item description"/></td>
-        <td><input type="number" value="0" onchange="calculateTotal()" /></td>
-        <td><input type="number" value="1" onchange="calculateTotal()" /></td>
-        <td class="line-total">$0.00</td>
-      `;
-      tbody.appendChild(row);
-    }
-
-    async function downloadPDF() {
+    async function generatePDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      const title = document.getElementById("invoiceTitle").value || "Easy Invoice";
-      doc.text(title, 20, 20);
-      doc.html(document.getElementById("invoiceArea"), {
-        callback: function (doc) {
-          doc.save("invoice.pdf");
-        },
-        x: 10,
-        y: 30,
-        html2canvas: { scale: 0.5 }
-      });
-    }
 
-    // 初始化语言
-    const savedLang = localStorage.getItem("lang") || "en";
-    setLanguage(savedLang);
-    localStorage.setItem("lang", savedLang);
+      if (logoData) {
+        doc.addImage(logoData, 'PNG', 10, 10, 40, 20);
+      }
+      doc.setFontSize(12);
+      doc.text(document.getElementById('companyName').value, 60, 15);
+      doc.text(document.getElementById('companyAddress').value, 60, 22);
+      doc.text(document.getElementById('companyPhone').value, 60, 29);
+
+      doc.setFontSize(14);
+      doc.text("Invoice", 10, 50);
+
+      const items = document.getElementById('invoiceItems').value.trim().split('\n');
+      let startY = 60;
+      doc.setFontSize(12);
+      doc.setLineWidth(0.1);
+
+      doc.text("Item", 10, startY);
+      doc.text("Qty", 100, startY);
+      doc.text("Price", 140, startY);
+      doc.line(10, startY + 2, 200, startY + 2);
+      startY += 10;
+
+      let total = 0;
+      items.forEach(line => {
+        const [item, qty, price] = line.split('|').map(v => v.trim());
+        doc.text(item, 10, startY);
+        doc.text(qty, 100, startY);
+        doc.text(price, 140, startY);
+        total += parseFloat(qty) * parseFloat(price);
+        startY += 10;
+      });
+
+      doc.setFontSize(13);
+      doc.text("Total: " + total.toFixed(2), 140, startY + 10);
+
+      const date = new Date().toLocaleDateString();
+      doc.setFontSize(10);
+      doc.text("Generated on: " + date, 10, 280);
+
+      doc.save("invoice.pdf");
+    }
   </script>
 </body>
 </html>
