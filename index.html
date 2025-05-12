@@ -2,45 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Easy Invoice</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f2f2f2;
-    }
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
     .container {
       max-width: 900px;
-      margin: 20px auto;
+      margin: 30px auto;
       background: white;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
     }
-    input, textarea, select, button {
-      margin-top: 10px;
+    h1 { text-align: center; }
+    input, textarea, button {
       width: 100%;
-      padding: 8px;
+      margin-top: 8px;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 4px;
-      font-size: 1rem;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-    }
-    .row > div {
-      flex: 1;
-    }
-    .logo-preview {
-      max-height: 80px;
-      margin-top: 10px;
     }
     .language-selector {
       text-align: right;
@@ -48,6 +30,22 @@
     }
     .language-selector button {
       margin-left: 5px;
+      padding: 5px 10px;
+      font-size: 0.9rem;
+    }
+    .logo-preview {
+      max-height: 80px;
+      display: block;
+      margin-top: 10px;
+    }
+    button.save {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button.save:hover {
+      background-color: #45a049;
     }
   </style>
 </head>
@@ -63,26 +61,32 @@
     <h1 id="title">Easy Invoice</h1>
 
     <label id="lbl_logo">Upload Logo:</label>
-    <input type="file" accept="image/*" id="logoInput">
+    <input type="file" accept="image/*" id="logoInput" />
     <img id="logoPreview" class="logo-preview" />
 
     <label id="lbl_company">Company Name</label>
-    <input type="text" id="companyName" placeholder="Company Inc." />
+    <input type="text" id="companyName" />
 
     <label id="lbl_address">Address</label>
-    <textarea id="companyAddress" placeholder="123 Main St, City, Country"></textarea>
+    <textarea id="companyAddress"></textarea>
 
     <label id="lbl_phone">Phone</label>
-    <input type="text" id="companyPhone" placeholder="+1234567890" />
+    <input type="text" id="companyPhone" />
 
     <label id="lbl_invoice">Invoice Items (format: Item | Qty | Price)</label>
-    <textarea id="invoiceItems" placeholder="Widget A | 2 | 100&#10;Widget B | 1 | 200"></textarea>
+    <textarea id="invoiceItems" rows="6"></textarea>
 
-    <button onclick="generatePDF()">Download PDF</button>
+    <button class="save" onclick="saveDraft()">💾 Save Draft</button>
+    <button onclick="generatePDF()">📄 Download PDF</button>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
+    const fields = ["companyName", "companyAddress", "companyPhone", "invoiceItems"];
+    const logoInput = document.getElementById('logoInput');
+    const logoPreview = document.getElementById('logoPreview');
+    let logoData = null;
+
     const labels = {
       en: { title: "Easy Invoice", lbl_logo: "Upload Logo:", lbl_company: "Company Name", lbl_address: "Address", lbl_phone: "Phone", lbl_invoice: "Invoice Items (format: Item | Qty | Price)" },
       zh: { title: "简易发票", lbl_logo: "上传 Logo：", lbl_company: "公司名称", lbl_address: "地址", lbl_phone: "电话", lbl_invoice: "发票项目（格式：项目 | 数量 | 单价）" },
@@ -91,24 +95,55 @@
     };
 
     function setLang(lang) {
-      document.getElementById('title').textContent = labels[lang].title;
-      document.getElementById('lbl_logo').textContent = labels[lang].lbl_logo;
-      document.getElementById('lbl_company').textContent = labels[lang].lbl_company;
-      document.getElementById('lbl_address').textContent = labels[lang].lbl_address;
-      document.getElementById('lbl_phone').textContent = labels[lang].lbl_phone;
-      document.getElementById('lbl_invoice').textContent = labels[lang].lbl_invoice;
+      const l = labels[lang];
+      document.getElementById('title').textContent = l.title;
+      document.getElementById('lbl_logo').textContent = l.lbl_logo;
+      document.getElementById('lbl_company').textContent = l.lbl_company;
+      document.getElementById('lbl_address').textContent = l.lbl_address;
+      document.getElementById('lbl_phone').textContent = l.lbl_phone;
+      document.getElementById('lbl_invoice').textContent = l.lbl_invoice;
+      localStorage.setItem("lang", lang);
     }
 
-    let logoData = null;
-    document.getElementById('logoInput').addEventListener('change', function (e) {
+    // Load language on page load
+    const savedLang = localStorage.getItem("lang") || "en";
+    setLang(savedLang);
+
+    // Restore Draft
+    window.onload = () => {
+      fields.forEach(id => {
+        if (localStorage.getItem(id)) {
+          document.getElementById(id).value = localStorage.getItem(id);
+        }
+      });
+      if (localStorage.getItem("logo")) {
+        logoData = localStorage.getItem("logo");
+        logoPreview.src = logoData;
+      }
+    };
+
+    // Save Draft
+    function saveDraft() {
+      fields.forEach(id => {
+        localStorage.setItem(id, document.getElementById(id).value);
+      });
+      if (logoData) {
+        localStorage.setItem("logo", logoData);
+      }
+      alert("✅ Draft saved locally.");
+    }
+
+    // Handle Logo Upload
+    logoInput.addEventListener('change', function (e) {
       const reader = new FileReader();
       reader.onload = function (event) {
         logoData = event.target.result;
-        document.getElementById('logoPreview').src = logoData;
+        logoPreview.src = logoData;
       };
       reader.readAsDataURL(e.target.files[0]);
     });
 
+    // Generate PDF
     async function generatePDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
@@ -116,6 +151,7 @@
       if (logoData) {
         doc.addImage(logoData, 'PNG', 10, 10, 40, 20);
       }
+
       doc.setFontSize(12);
       doc.text(document.getElementById('companyName').value, 60, 15);
       doc.text(document.getElementById('companyAddress').value, 60, 22);
@@ -138,10 +174,10 @@
       let total = 0;
       items.forEach(line => {
         const [item, qty, price] = line.split('|').map(v => v.trim());
-        doc.text(item, 10, startY);
-        doc.text(qty, 100, startY);
-        doc.text(price, 140, startY);
-        total += parseFloat(qty) * parseFloat(price);
+        doc.text(item || '', 10, startY);
+        doc.text(qty || '', 100, startY);
+        doc.text(price || '', 140, startY);
+        if (!isNaN(qty) && !isNaN(price)) total += parseFloat(qty) * parseFloat(price);
         startY += 10;
       });
 
