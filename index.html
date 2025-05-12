@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Easy Invoice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f4f6f9;
+      text-align: center;
+    }
+    h1 {
+      color: #333;
+    }
+    .lang-buttons {
+      margin-bottom: 1.5rem;
+    }
+    button {
+      margin: 0 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    .content {
+      font-size: 1.2rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <h1>Easy Invoice</h1>
+  <div class="lang-buttons">
+    <button onclick="setLanguage('zh')">中文</button>
+    <button onclick="setLanguage('en')">English</button>
+    <button onclick="setLanguage('ja')">日本語</button>
+    <button onclick="setLanguage('ko')">한국어</button>
+  </div>
+  <div class="content" id="content"></div>
+
+  <script>
+    const translations = {
+      zh: "欢迎使用 Easy Invoice — 简单高效的在线开票工具。",
+      en: "Welcome to Easy Invoice — the simple and powerful online invoicing tool.",
+      ja: "Easy Invoice へようこそ — シンプルで強力なオンライン請求書作成ツールです。",
+      ko: "Easy Invoice에 오신 것을 환영합니다 — 쉽고 강력한 온라인 인보이스 도구입니다."
+    };
+
+    function setLanguage(lang) {
+      document.getElementById("content").innerText = translations[lang];
+      localStorage.setItem("lang", lang);
+    }
+
+    // 初始加载时读取上次语言设置
+    const savedLang = localStorage.getItem("lang") || "en";
+    setLanguage(savedLang);
+  </script>
+</body>
+</html>
