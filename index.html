@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Easy Invoice</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -19,7 +20,7 @@
       margin-bottom: 2rem;
     }
     button {
-      margin: 0 0.5rem;
+      margin: 0.5rem 0.5rem;
       padding: 0.5rem 1rem;
       border: none;
       border-radius: 6px;
@@ -41,7 +42,7 @@
       padding: 1.5rem;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
     }
     .invoice-form h2 {
@@ -77,6 +78,11 @@
       font-size: 1.2rem;
       margin-top: 1rem;
     }
+
+    .pdf-button {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -91,39 +97,39 @@
 
   <div class="content" id="content"></div>
 
-  <div class="invoice-form">
+  <div class="invoice-form" id="invoiceArea">
     <h2 id="formTitle">Invoice Editor</h2>
 
     <div class="form-group">
       <label id="labelTitle">Invoice Title</label>
-      <input type="text" placeholder="Enter invoice title" />
+      <input id="invoiceTitle" type="text" placeholder="Enter invoice title" />
     </div>
 
     <div class="form-group">
       <label id="labelDate">Date</label>
-      <input type="date" />
+      <input id="invoiceDate" type="date" />
     </div>
 
     <div class="form-group">
       <label id="labelNumber">Invoice Number</label>
-      <input type="text" placeholder="e.g. INV-2025-001" />
+      <input id="invoiceNumber" type="text" placeholder="e.g. INV-2025-001" />
     </div>
 
     <h2 id="clientInfo">Client Info</h2>
 
     <div class="form-group">
       <label id="labelClient">Company Name</label>
-      <input type="text" />
+      <input id="clientName" type="text" />
     </div>
 
     <div class="form-group">
       <label id="labelAddress">Address</label>
-      <input type="text" />
+      <input id="clientAddress" type="text" />
     </div>
 
     <div class="form-group">
       <label id="labelEmail">Email</label>
-      <input type="email" />
+      <input id="clientEmail" type="email" />
     </div>
 
     <h2 id="itemsTitle">Items</h2>
@@ -147,7 +153,13 @@
       </tbody>
     </table>
 
+    <button onclick="addItemRow()">➕ 添加项目</button>
+
     <div class="total" id="grandTotal">Grand Total: $0.00</div>
+
+    <div class="pdf-button">
+      <button onclick="downloadPDF()">📄 导出 PDF</button>
+    </div>
   </div>
 
   <script>
@@ -238,8 +250,7 @@
       document.getElementById("priceHead").innerText = t.priceHead;
       document.getElementById("qtyHead").innerText = t.qtyHead;
       document.getElementById("totalHead").innerText = t.totalHead;
-      document.getElementById("grandTotal").innerText = `${t.grandTotal}: $0.00`;
-      localStorage.setItem("lang", lang);
+      calculateTotal();
     }
 
     function calculateTotal() {
@@ -257,9 +268,37 @@
       document.getElementById("grandTotal").innerText = `${t.grandTotal}: $${grand.toFixed(2)}`;
     }
 
-    // 初始化
+    function addItemRow() {
+      const tbody = document.querySelector("#itemTable tbody");
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" placeholder="Item description"/></td>
+        <td><input type="number" value="0" onchange="calculateTotal()" /></td>
+        <td><input type="number" value="1" onchange="calculateTotal()" /></td>
+        <td class="line-total">$0.00</td>
+      `;
+      tbody.appendChild(row);
+    }
+
+    async function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const title = document.getElementById("invoiceTitle").value || "Easy Invoice";
+      doc.text(title, 20, 20);
+      doc.html(document.getElementById("invoiceArea"), {
+        callback: function (doc) {
+          doc.save("invoice.pdf");
+        },
+        x: 10,
+        y: 30,
+        html2canvas: { scale: 0.5 }
+      });
+    }
+
+    // 初始化语言
     const savedLang = localStorage.getItem("lang") || "en";
     setLanguage(savedLang);
+    localStorage.setItem("lang", savedLang);
   </script>
 </body>
 </html>
