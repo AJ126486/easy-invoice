@@ -9,13 +9,14 @@
       font-family: Arial, sans-serif;
       padding: 2rem;
       background-color: #f4f6f9;
-      text-align: center;
-    }
-    h1 {
       color: #333;
     }
+    h1 {
+      text-align: center;
+    }
     .lang-buttons {
-      margin-bottom: 1.5rem;
+      text-align: center;
+      margin-bottom: 2rem;
     }
     button {
       margin: 0 0.5rem;
@@ -30,35 +31,233 @@
       background-color: #0056b3;
     }
     .content {
+      text-align: center;
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+    }
+
+    .invoice-form {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      max-width: 800px;
+      margin: auto;
+    }
+    .invoice-form h2 {
+      margin-top: 1rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+    }
+    .form-group label {
+      margin-bottom: 0.3rem;
+    }
+    .form-group input {
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1rem;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: center;
+    }
+
+    .total {
+      text-align: right;
       font-size: 1.2rem;
-      color: #555;
+      margin-top: 1rem;
     }
   </style>
 </head>
 <body>
   <h1>Easy Invoice</h1>
+
   <div class="lang-buttons">
     <button onclick="setLanguage('zh')">中文</button>
     <button onclick="setLanguage('en')">English</button>
     <button onclick="setLanguage('ja')">日本語</button>
     <button onclick="setLanguage('ko')">한국어</button>
   </div>
+
   <div class="content" id="content"></div>
+
+  <div class="invoice-form">
+    <h2 id="formTitle">Invoice Editor</h2>
+
+    <div class="form-group">
+      <label id="labelTitle">Invoice Title</label>
+      <input type="text" placeholder="Enter invoice title" />
+    </div>
+
+    <div class="form-group">
+      <label id="labelDate">Date</label>
+      <input type="date" />
+    </div>
+
+    <div class="form-group">
+      <label id="labelNumber">Invoice Number</label>
+      <input type="text" placeholder="e.g. INV-2025-001" />
+    </div>
+
+    <h2 id="clientInfo">Client Info</h2>
+
+    <div class="form-group">
+      <label id="labelClient">Company Name</label>
+      <input type="text" />
+    </div>
+
+    <div class="form-group">
+      <label id="labelAddress">Address</label>
+      <input type="text" />
+    </div>
+
+    <div class="form-group">
+      <label id="labelEmail">Email</label>
+      <input type="email" />
+    </div>
+
+    <h2 id="itemsTitle">Items</h2>
+
+    <table id="itemTable">
+      <thead>
+        <tr>
+          <th id="descHead">Description</th>
+          <th id="priceHead">Price</th>
+          <th id="qtyHead">Quantity</th>
+          <th id="totalHead">Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><input type="text" placeholder="Item description"/></td>
+          <td><input type="number" value="0" onchange="calculateTotal()" /></td>
+          <td><input type="number" value="1" onchange="calculateTotal()" /></td>
+          <td class="line-total">$0.00</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="total" id="grandTotal">Grand Total: $0.00</div>
+  </div>
 
   <script>
     const translations = {
-      zh: "欢迎使用 Easy Invoice — 简单高效的在线开票工具。",
-      en: "Welcome to Easy Invoice — the simple and powerful online invoicing tool.",
-      ja: "Easy Invoice へようこそ — シンプルで強力なオンライン請求書作成ツールです。",
-      ko: "Easy Invoice에 오신 것을 환영합니다 — 쉽고 강력한 온라인 인보이스 도구입니다."
+      zh: {
+        welcome: "欢迎使用 Easy Invoice — 简单高效的在线开票工具。",
+        formTitle: "发票编辑器",
+        labelTitle: "发票标题",
+        labelDate: "日期",
+        labelNumber: "发票编号",
+        clientInfo: "客户信息",
+        labelClient: "公司名称",
+        labelAddress: "地址",
+        labelEmail: "邮箱",
+        itemsTitle: "项目列表",
+        descHead: "项目描述",
+        priceHead: "单价",
+        qtyHead: "数量",
+        totalHead: "金额",
+        grandTotal: "总计"
+      },
+      en: {
+        welcome: "Welcome to Easy Invoice — the simple and powerful online invoicing tool.",
+        formTitle: "Invoice Editor",
+        labelTitle: "Invoice Title",
+        labelDate: "Date",
+        labelNumber: "Invoice Number",
+        clientInfo: "Client Info",
+        labelClient: "Company Name",
+        labelAddress: "Address",
+        labelEmail: "Email",
+        itemsTitle: "Items",
+        descHead: "Description",
+        priceHead: "Price",
+        qtyHead: "Quantity",
+        totalHead: "Total",
+        grandTotal: "Grand Total"
+      },
+      ja: {
+        welcome: "Easy Invoice へようこそ — シンプルで強力なオンライン請求書作成ツールです。",
+        formTitle: "請求書エディタ",
+        labelTitle: "請求書のタイトル",
+        labelDate: "日付",
+        labelNumber: "請求書番号",
+        clientInfo: "クライアント情報",
+        labelClient: "会社名",
+        labelAddress: "住所",
+        labelEmail: "メールアドレス",
+        itemsTitle: "項目一覧",
+        descHead: "説明",
+        priceHead: "単価",
+        qtyHead: "数量",
+        totalHead: "合計",
+        grandTotal: "総合計"
+      },
+      ko: {
+        welcome: "Easy Invoice에 오신 것을 환영합니다 — 쉽고 강력한 온라인 인보이스 도구입니다.",
+        formTitle: "인보이스 편집기",
+        labelTitle: "인보이스 제목",
+        labelDate: "날짜",
+        labelNumber: "인보이스 번호",
+        clientInfo: "고객 정보",
+        labelClient: "회사명",
+        labelAddress: "주소",
+        labelEmail: "이메일",
+        itemsTitle: "항목 목록",
+        descHead: "설명",
+        priceHead: "단가",
+        qtyHead: "수량",
+        totalHead: "합계",
+        grandTotal: "총합계"
+      }
     };
 
     function setLanguage(lang) {
-      document.getElementById("content").innerText = translations[lang];
+      const t = translations[lang];
+      document.getElementById("content").innerText = t.welcome;
+      document.getElementById("formTitle").innerText = t.formTitle;
+      document.getElementById("labelTitle").innerText = t.labelTitle;
+      document.getElementById("labelDate").innerText = t.labelDate;
+      document.getElementById("labelNumber").innerText = t.labelNumber;
+      document.getElementById("clientInfo").innerText = t.clientInfo;
+      document.getElementById("labelClient").innerText = t.labelClient;
+      document.getElementById("labelAddress").innerText = t.labelAddress;
+      document.getElementById("labelEmail").innerText = t.labelEmail;
+      document.getElementById("itemsTitle").innerText = t.itemsTitle;
+      document.getElementById("descHead").innerText = t.descHead;
+      document.getElementById("priceHead").innerText = t.priceHead;
+      document.getElementById("qtyHead").innerText = t.qtyHead;
+      document.getElementById("totalHead").innerText = t.totalHead;
+      document.getElementById("grandTotal").innerText = `${t.grandTotal}: $0.00`;
       localStorage.setItem("lang", lang);
     }
 
-    // 初始加载时读取上次语言设置
+    function calculateTotal() {
+      const rows = document.querySelectorAll("#itemTable tbody tr");
+      let grand = 0;
+      rows.forEach(row => {
+        const price = parseFloat(row.cells[1].children[0].value) || 0;
+        const qty = parseFloat(row.cells[2].children[0].value) || 0;
+        const total = price * qty;
+        row.cells[3].innerText = `$${total.toFixed(2)}`;
+        grand += total;
+      });
+      const lang = localStorage.getItem("lang") || "en";
+      const t = translations[lang];
+      document.getElementById("grandTotal").innerText = `${t.grandTotal}: $${grand.toFixed(2)}`;
+    }
+
+    // 初始化
     const savedLang = localStorage.getItem("lang") || "en";
     setLanguage(savedLang);
   </script>
