@@ -23,8 +23,8 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    .row { display: flex; gap: 10px; }
-    .row > div { flex: 1; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > div { flex: 1; min-width: 280px; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     table, th, td { border: 1px solid #ccc; }
     th, td { padding: 10px; text-align: center; }
@@ -59,21 +59,26 @@
 
     <h1 id="title">Easy Invoice</h1>
 
-    <label id="lbl_logo">Upload Logo:</label>
+    <label>Upload Logo:</label>
     <input type="file" id="logoInput" accept="image/*" />
     <img id="logoPreview" class="logo-preview" />
 
-    <h3 id="lbl_seller">Your Company Info</h3>
-    <input type="text" id="companyName" placeholder="Company Name" />
-    <textarea id="companyAddress" placeholder="Address"></textarea>
-    <input type="text" id="companyPhone" placeholder="Phone" />
+    <div class="row">
+      <div>
+        <h3>Sender Info</h3>
+        <input type="text" id="senderName" placeholder="Sender Name" />
+        <textarea id="senderAddress" placeholder="Address"></textarea>
+        <input type="text" id="senderPhone" placeholder="Phone" />
+      </div>
+      <div>
+        <h3>Recipient Info</h3>
+        <input type="text" id="customerName" placeholder="Customer Name" />
+        <textarea id="customerAddress" placeholder="Address"></textarea>
+        <input type="text" id="customerPhone" placeholder="Phone" />
+      </div>
+    </div>
 
-    <h3 id="lbl_buyer">Customer Info</h3>
-    <input type="text" id="customerName" placeholder="Customer Name" />
-    <textarea id="customerAddress" placeholder="Address"></textarea>
-    <input type="text" id="customerPhone" placeholder="Phone" />
-
-    <h3 id="lbl_items">Invoice Items</h3>
+    <h3>Invoice Items</h3>
     <table id="itemsTable">
       <thead>
         <tr>
@@ -97,11 +102,8 @@
     </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const { jsPDF } = window.jspdf;
     let logoData = null;
-    const fields = ["companyName", "companyAddress", "companyPhone", "customerName", "customerAddress", "customerPhone", "gstInput"];
 
     function addItemRow(item = "", qty = "", price = "") {
       const table = document.querySelector("#itemsTable tbody");
@@ -111,9 +113,9 @@
 
       row.innerHTML = `
         <td>${index}</td>
-        <td><input type="text" value="${item}" oninput="updateSubtotal(this)" /></td>
-        <td><input type="number" value="${qty}" oninput="updateSubtotal(this)" /></td>
-        <td><input type="number" value="${price}" oninput="updateSubtotal(this)" /></td>
+        <td><input type="text" value="${item}" oninput="updateSubtotal()" /></td>
+        <td><input type="number" value="${qty}" oninput="updateSubtotal()" /></td>
+        <td><input type="number" value="${price}" oninput="updateSubtotal()" /></td>
         <td class="subtotal">0.00</td>
       `;
       table.appendChild(row);
@@ -121,4 +123,63 @@
     }
 
     function updateSubtotal() {
-      let
+      const rows = document.querySelectorAll("#itemsTable tbody tr");
+      rows.forEach(row => {
+        const qty = parseFloat(row.children[2].children[0].value) || 0;
+        const price = parseFloat(row.children[3].children[0].value) || 0;
+        const subtotal = qty * price;
+        row.children[4].textContent = subtotal.toFixed(2);
+      });
+    }
+
+    function saveDraft() {
+      const draft = {
+        senderName: document.getElementById("senderName").value,
+        senderAddress: document.getElementById("senderAddress").value,
+        senderPhone: document.getElementById("senderPhone").value,
+        customerName: document.getElementById("customerName").value,
+        customerAddress: document.getElementById("customerAddress").value,
+        customerPhone: document.getElementById("customerPhone").value,
+        gst: document.getElementById("gstInput").value,
+        items: Array.from(document.querySelectorAll("#itemsTable tbody tr")).map(row => ({
+          item: row.children[1].children[0].value,
+          qty: row.children[2].children[0].value,
+          price: row.children[3].children[0].value,
+        }))
+      };
+      localStorage.setItem("invoiceDraft", JSON.stringify(draft));
+      alert("Draft saved!");
+    }
+
+    function loadDraft() {
+      const draft = JSON.parse(localStorage.getItem("invoiceDraft"));
+      if (!draft) return;
+      document.getElementById("senderName").value = draft.senderName || "";
+      document.getElementById("senderAddress").value = draft.senderAddress || "";
+      document.getElementById("senderPhone").value = draft.senderPhone || "";
+      document.getElementById("customerName").value = draft.customerName || "";
+      document.getElementById("customerAddress").value = draft.customerAddress || "";
+      document.getElementById("customerPhone").value = draft.customerPhone || "";
+      document.getElementById("gstInput").value = draft.gst || "";
+      document.querySelector("#itemsTable tbody").innerHTML = "";
+      draft.items.forEach(i => addItemRow(i.item, i.qty, i.price));
+    }
+
+    document.getElementById("logoInput").addEventListener("change", function (event) {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        logoData = e.target.result;
+        document.getElementById("logoPreview").src = logoData;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function setLang(lang) {
+      alert("多语言功能开发中，当前语言切换为：" + lang);
+    }
+
+    window.onload = loadDraft;
+  </script>
+</body>
+</html>
