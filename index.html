@@ -5,135 +5,208 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Easy Invoice</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5faff;
-      margin: 0;
-      padding: 2rem;
-    }
-    .invoice-box {
-      background: white;
-      padding: 2rem;
-      max-width: 900px;
-      margin: auto;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      border-radius: 8px;
-    }
-    .section-title {
-      font-weight: bold;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-      font-size: 1.2rem;
-    }
-    textarea, input {
-      width: 100%;
-      padding: 0.5rem;
-      margin: 0.25rem 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 0.9rem;
-    }
-    .row {
-      display: flex;
-      gap: 1rem;
-    }
-    .col {
-      flex: 1;
-    }
-    .invoice-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    .invoice-table th, .invoice-table td {
-      border: 1px solid #ddd;
-      padding: 0.5rem;
-      text-align: center;
-    }
-    .add-btn, .save-btn {
-      background: #2b89ff;
-      color: white;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-top: 1rem;
-    }
-    .add-btn:hover, .save-btn:hover {
-      background: #1a6fd6;
-    }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f8f9fa; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; }
+    input, textarea, select { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+    .row { display: flex; gap: 10px; }
+    .row > div { flex: 1; }
+    .invoice-items { margin-top: 20px; }
+    .invoice-items th, .invoice-items td { padding: 10px; text-align: left; }
+    .invoice-items th { background: #e9ecef; }
+    .total { font-weight: bold; text-align: right; margin-top: 10px; }
+    #logo-preview { max-height: 60px; margin-top: 10px; }
+    .actions { margin-top: 20px; text-align: center; }
+    button { padding: 10px 20px; margin: 5px; }
   </style>
 </head>
 <body>
-<div class="invoice-box">
-  <h2>Easy Invoice</h2>
-
-  <div class="section-title">From</div>
-  <textarea placeholder="Bank Details:\nAccount Name\nBSB\nACC\nEmail"></textarea>
+<div class="container">
+  <h1 id="title">Easy Invoice</h1>
 
   <div class="row">
-    <div class="col">
-      <div class="section-title">Bill To</div>
-      <textarea placeholder="Client Name\nABN\nAddress"></textarea>
+    <div>
+      <label>Login</label>
+      <input type="email" placeholder="Email">
+      <input type="password" placeholder="Password">
+      <button onclick="alert('Login logic here')">Login</button>
+      <button onclick="alert('Register logic here')">Register</button>
     </div>
-    <div class="col">
-      <div class="section-title">Ship To</div>
-      <textarea placeholder="Shipping Address (optional)"></textarea>
+    <div>
+      <label>Upload Logo</label>
+      <input type="file" id="logo-upload" accept="image/*">
+      <img id="logo-preview" alt="Logo Preview">
     </div>
   </div>
 
-  <div class="row">
-    <div class="col">
-      <label>Invoice #</label>
-      <input type="text" placeholder="000001">
-    </div>
-    <div class="col">
-      <label>Invoice Date</label>
-      <input type="date">
-    </div>
-    <div class="col">
-      <label>Due Date</label>
-      <input type="date">
-    </div>
+  <label>Language</label>
+  <select id="language-select" onchange="setLanguage()">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+  </select>
+
+  <label>Country</label>
+  <select id="country-select" onchange="setDefaultGST()">
+    <option value="AUD,10">Australia (GST 10%)</option>
+    <option value="CAD,5">Canada (GST 5%)</option>
+    <option value="GBP,20">UK (VAT 20%)</option>
+    <option value="USD,0">USA (No GST)</option>
+    <option value="NZD,15">New Zealand (GST 15%)</option>
+  </select>
+
+  <label id="from-label">From</label>
+  <textarea id="from"></textarea>
+
+  <label id="to-label">Bill To</label>
+  <textarea id="billto"></textarea>
+
+  <label id="invoice-number-label">Invoice Number</label>
+  <input type="text" id="invoice-number">
+
+  <label id="invoice-date-label">Invoice Date</label>
+  <input type="date" id="invoice-date">
+
+  <label id="due-date-label">Due Date</label>
+  <input type="date" id="due-date">
+
+  <div class="invoice-items">
+    <table width="100%" border="1">
+      <thead>
+        <tr>
+          <th>Qty</th>
+          <th>Description</th>
+          <th>Unit Price</th>
+          <th>GST %</th>
+          <th>Amount</th>
+        </tr>
+      </thead>
+      <tbody id="items">
+        <tr>
+          <td><input type="number" class="qty" value="1"></td>
+          <td><input type="text" class="desc"></td>
+          <td><input type="number" class="price" value="0"></td>
+          <td><input type="number" class="gst" value="0"></td>
+          <td><span class="amount">0.00</span></td>
+        </tr>
+      </tbody>
+    </table>
+    <button onclick="addItem()">+ Add Item</button>
   </div>
 
-  <table class="invoice-table">
-    <thead>
-    <tr>
-      <th>Qty</th>
-      <th>Description</th>
-      <th>Unit Price</th>
-      <th>Amount</th>
-    </tr>
-    </thead>
-    <tbody id="invoice-items">
-    <tr>
-      <td><input type="number" value="1"></td>
-      <td><input type="text" placeholder="Item description"></td>
-      <td><input type="number" value="0"></td>
-      <td><input type="number" value="0" readonly></td>
-    </tr>
-    </tbody>
-  </table>
-  <button class="add-btn" onclick="addRow()">+ Add Item</button>
+  <div class="total">
+    <span id="total-label">Total:</span> <span id="total">$0.00</span>
+  </div>
 
-  <div class="section-title">Terms & Conditions</div>
-  <textarea placeholder="Payment is due within 10 days"></textarea>
-
-  <button class="save-btn">Save Invoice</button>
+  <div class="actions">
+    <button onclick="saveDraft()">Save Draft</button>
+    <button onclick="exportPDF()">Export PDF</button>
+    <button onclick="alert('Connect payment logic here')">Pay with PayPal / Visa</button>
+  </div>
 </div>
 
 <script>
-  function addRow() {
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td><input type="number" value="1"></td>
-      <td><input type="text" placeholder="Item description"></td>
-      <td><input type="number" value="0"></td>
-      <td><input type="number" value="0" readonly></td>
-    `;
-    document.getElementById('invoice-items').appendChild(row);
+let currencySymbol = '$';
+
+function updateTotals() {
+  let total = 0;
+  document.querySelectorAll('#items tr').forEach(row => {
+    const qty = parseFloat(row.querySelector('.qty').value) || 0;
+    const price = parseFloat(row.querySelector('.price').value) || 0;
+    const gst = parseFloat(row.querySelector('.gst').value) || 0;
+    let amount = qty * price * (1 + gst / 100);
+    total += amount;
+    row.querySelector('.amount').innerText = amount.toFixed(2);
+  });
+  document.getElementById('total').innerText = `${currencySymbol}${total.toFixed(2)}`;
+}
+
+document.querySelectorAll('.qty, .price, .gst').forEach(el => {
+  el.addEventListener('input', updateTotals);
+});
+
+function addItem() {
+  const gstDefault = getSelectedCountryGST();
+  const row = document.createElement('tr');
+  row.innerHTML = `
+    <td><input type="number" class="qty" value="1"></td>
+    <td><input type="text" class="desc"></td>
+    <td><input type="number" class="price" value="0"></td>
+    <td><input type="number" class="gst" value="${gstDefault}"></td>
+    <td><span class="amount">0.00</span></td>
+  `;
+  row.querySelectorAll('input').forEach(input => input.addEventListener('input', updateTotals));
+  document.getElementById('items').appendChild(row);
+  updateTotals();
+}
+
+function getSelectedCountryGST() {
+  const select = document.getElementById('country-select');
+  return parseFloat(select.value.split(',')[1]) || 0;
+}
+
+function setDefaultGST() {
+  const [currency, gst] = document.getElementById('country-select').value.split(',');
+  currencySymbol = getCurrencySymbol(currency);
+  document.querySelectorAll('.gst').forEach(input => input.value = gst);
+  updateTotals();
+}
+
+function getCurrencySymbol(code) {
+  const symbols = { USD: '$', AUD: 'A$', CAD: 'C$', GBP: '£', NZD: 'NZ$', EUR: '€' };
+  return symbols[code] || code + ' ';
+}
+
+document.getElementById('logo-upload').addEventListener('change', function(evt) {
+  const file = evt.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = e => document.getElementById('logo-preview').src = e.target.result;
+    reader.readAsDataURL(file);
   }
+});
+
+function saveDraft() {
+  const data = {
+    from: document.getElementById('from').value,
+    billto: document.getElementById('billto').value,
+    invoiceNumber: document.getElementById('invoice-number').value,
+    invoiceDate: document.getElementById('invoice-date').value,
+    dueDate: document.getElementById('due-date').value,
+  };
+  localStorage.setItem('invoiceDraft', JSON.stringify(data));
+  alert('Draft saved!');
+}
+
+function exportPDF() {
+  alert('This would trigger jsPDF logic for real export');
+  // Implementation of real PDF generation can be added here
+}
+
+function setLanguage() {
+  const lang = document.getElementById('language-select').value;
+  const translations = {
+    en: { from: 'From', to: 'Bill To', invNum: 'Invoice Number', invDate: 'Invoice Date', dueDate: 'Due Date', total: 'Total:', title: 'Easy Invoice' },
+    zh: { from: '发件方', to: '收件方', invNum: '发票编号', invDate: '开票日期', dueDate: '到期日', total: '总计:', title: '简易发票' },
+    ja: { from: '差出人', to: '請求先', invNum: '請求書番号', invDate: '発行日', dueDate: '支払期日', total: '合計:', title: '簡単請求書' },
+    ko: { from: '보내는 사람', to: '받는 사람', invNum: '청구서 번호', invDate: '청구 날짜', dueDate: '지불 기한', total: '총액:', title: '간편 송장' },
+    de: { from: 'Von', to: 'An', invNum: 'Rechnungsnummer', invDate: 'Rechnungsdatum', dueDate: 'Fälligkeitsdatum', total: 'Gesamt:', title: 'Einfache Rechnung' },
+    es: { from: 'De', to: 'Para', invNum: 'Número de factura', invDate: 'Fecha de emisión', dueDate: 'Fecha de vencimiento', total: 'Total:', title: 'Factura Fácil' },
+    fr: { from: 'De', to: 'À', invNum: 'Numéro de facture', invDate: 'Date de facture', dueDate: 'Date d'échéance', total: 'Total :', title: 'Facture Facile' }
+  };
+  const t = translations[lang];
+  document.getElementById('from-label').innerText = t.from;
+  document.getElementById('to-label').innerText = t.to;
+  document.getElementById('invoice-number-label').innerText = t.invNum;
+  document.getElementById('invoice-date-label').innerText = t.invDate;
+  document.getElementById('due-date-label').innerText = t.dueDate;
+  document.getElementById('total-label').innerText = t.total;
+  document.getElementById('title').innerText = t.title;
+}
 </script>
 </body>
 </html>
