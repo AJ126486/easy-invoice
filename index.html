@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Easy Invoice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
     body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 30px auto;
       background: white;
       padding: 20px;
@@ -15,38 +15,37 @@
       box-shadow: 0 2px 12px rgba(0,0,0,0.1);
     }
     h1 { text-align: center; }
-    input, textarea, button {
+    input, textarea, select {
       width: 100%;
-      margin-top: 8px;
-      margin-bottom: 15px;
+      margin: 6px 0 12px 0;
       padding: 10px;
       font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    .language-selector {
-      text-align: right;
-      margin-bottom: 10px;
-    }
+    .row { display: flex; gap: 10px; }
+    .row > div { flex: 1; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table, th, td { border: 1px solid #ccc; }
+    th, td { padding: 10px; text-align: center; }
+    .logo-preview { max-height: 80px; display: block; margin-top: 10px; }
+    .language-selector { text-align: right; margin-bottom: 10px; }
     .language-selector button {
       margin-left: 5px;
       padding: 5px 10px;
       font-size: 0.9rem;
     }
-    .logo-preview {
-      max-height: 80px;
-      display: block;
-      margin-top: 10px;
-    }
-    button.save {
-      background-color: #4CAF50;
-      color: white;
-      border: none;
+    button {
+      padding: 10px 20px;
+      margin-top: 20px;
+      font-size: 1rem;
       cursor: pointer;
     }
-    button.save:hover {
-      background-color: #45a049;
-    }
+    .btn-save { background-color: #4CAF50; color: white; border: none; }
+    .btn-save:hover { background-color: #45a049; }
+    .btn-pdf { background-color: #2196F3; color: white; border: none; }
+    .btn-pdf:hover { background-color: #1976D2; }
+    .add-row { margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -61,135 +60,65 @@
     <h1 id="title">Easy Invoice</h1>
 
     <label id="lbl_logo">Upload Logo:</label>
-    <input type="file" accept="image/*" id="logoInput" />
+    <input type="file" id="logoInput" accept="image/*" />
     <img id="logoPreview" class="logo-preview" />
 
-    <label id="lbl_company">Company Name</label>
-    <input type="text" id="companyName" />
+    <h3 id="lbl_seller">Your Company Info</h3>
+    <input type="text" id="companyName" placeholder="Company Name" />
+    <textarea id="companyAddress" placeholder="Address"></textarea>
+    <input type="text" id="companyPhone" placeholder="Phone" />
 
-    <label id="lbl_address">Address</label>
-    <textarea id="companyAddress"></textarea>
+    <h3 id="lbl_buyer">Customer Info</h3>
+    <input type="text" id="customerName" placeholder="Customer Name" />
+    <textarea id="customerAddress" placeholder="Address"></textarea>
+    <input type="text" id="customerPhone" placeholder="Phone" />
 
-    <label id="lbl_phone">Phone</label>
-    <input type="text" id="companyPhone" />
+    <h3 id="lbl_items">Invoice Items</h3>
+    <table id="itemsTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Subtotal</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button class="add-row" onclick="addItemRow()">➕ Add Item</button>
 
-    <label id="lbl_invoice">Invoice Items (format: Item | Qty | Price)</label>
-    <textarea id="invoiceItems" rows="6"></textarea>
+    <label for="gstInput">GST (%)</label>
+    <input type="number" id="gstInput" placeholder="10" />
 
-    <button class="save" onclick="saveDraft()">💾 Save Draft</button>
-    <button onclick="generatePDF()">📄 Download PDF</button>
+    <div class="row">
+      <div><button class="btn-save" onclick="saveDraft()">💾 Save Draft</button></div>
+      <div><button class="btn-pdf" onclick="generatePDF()">📄 Download PDF</button></div>
+    </div>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const fields = ["companyName", "companyAddress", "companyPhone", "invoiceItems"];
-    const logoInput = document.getElementById('logoInput');
-    const logoPreview = document.getElementById('logoPreview');
+    const { jsPDF } = window.jspdf;
     let logoData = null;
+    const fields = ["companyName", "companyAddress", "companyPhone", "customerName", "customerAddress", "customerPhone", "gstInput"];
 
-    const labels = {
-      en: { title: "Easy Invoice", lbl_logo: "Upload Logo:", lbl_company: "Company Name", lbl_address: "Address", lbl_phone: "Phone", lbl_invoice: "Invoice Items (format: Item | Qty | Price)" },
-      zh: { title: "简易发票", lbl_logo: "上传 Logo：", lbl_company: "公司名称", lbl_address: "地址", lbl_phone: "电话", lbl_invoice: "发票项目（格式：项目 | 数量 | 单价）" },
-      ja: { title: "簡易請求書", lbl_logo: "ロゴアップロード：", lbl_company: "会社名", lbl_address: "住所", lbl_phone: "電話番号", lbl_invoice: "請求項目（形式：項目 | 数量 | 単価）" },
-      ko: { title: "간편 인보이스", lbl_logo: "로고 업로드:", lbl_company: "회사 이름", lbl_address: "주소", lbl_phone: "전화번호", lbl_invoice: "청구 항목 (형식: 항목 | 수량 | 가격)" },
-    };
+    function addItemRow(item = "", qty = "", price = "") {
+      const table = document.querySelector("#itemsTable tbody");
+      const row = document.createElement("tr");
 
-    function setLang(lang) {
-      const l = labels[lang];
-      document.getElementById('title').textContent = l.title;
-      document.getElementById('lbl_logo').textContent = l.lbl_logo;
-      document.getElementById('lbl_company').textContent = l.lbl_company;
-      document.getElementById('lbl_address').textContent = l.lbl_address;
-      document.getElementById('lbl_phone').textContent = l.lbl_phone;
-      document.getElementById('lbl_invoice').textContent = l.lbl_invoice;
-      localStorage.setItem("lang", lang);
+      const index = table.rows.length + 1;
+
+      row.innerHTML = `
+        <td>${index}</td>
+        <td><input type="text" value="${item}" oninput="updateSubtotal(this)" /></td>
+        <td><input type="number" value="${qty}" oninput="updateSubtotal(this)" /></td>
+        <td><input type="number" value="${price}" oninput="updateSubtotal(this)" /></td>
+        <td class="subtotal">0.00</td>
+      `;
+      table.appendChild(row);
+      updateSubtotal();
     }
 
-    // Load language on page load
-    const savedLang = localStorage.getItem("lang") || "en";
-    setLang(savedLang);
-
-    // Restore Draft
-    window.onload = () => {
-      fields.forEach(id => {
-        if (localStorage.getItem(id)) {
-          document.getElementById(id).value = localStorage.getItem(id);
-        }
-      });
-      if (localStorage.getItem("logo")) {
-        logoData = localStorage.getItem("logo");
-        logoPreview.src = logoData;
-      }
-    };
-
-    // Save Draft
-    function saveDraft() {
-      fields.forEach(id => {
-        localStorage.setItem(id, document.getElementById(id).value);
-      });
-      if (logoData) {
-        localStorage.setItem("logo", logoData);
-      }
-      alert("✅ Draft saved locally.");
-    }
-
-    // Handle Logo Upload
-    logoInput.addEventListener('change', function (e) {
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        logoData = event.target.result;
-        logoPreview.src = logoData;
-      };
-      reader.readAsDataURL(e.target.files[0]);
-    });
-
-    // Generate PDF
-    async function generatePDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      if (logoData) {
-        doc.addImage(logoData, 'PNG', 10, 10, 40, 20);
-      }
-
-      doc.setFontSize(12);
-      doc.text(document.getElementById('companyName').value, 60, 15);
-      doc.text(document.getElementById('companyAddress').value, 60, 22);
-      doc.text(document.getElementById('companyPhone').value, 60, 29);
-
-      doc.setFontSize(14);
-      doc.text("Invoice", 10, 50);
-
-      const items = document.getElementById('invoiceItems').value.trim().split('\n');
-      let startY = 60;
-      doc.setFontSize(12);
-      doc.setLineWidth(0.1);
-
-      doc.text("Item", 10, startY);
-      doc.text("Qty", 100, startY);
-      doc.text("Price", 140, startY);
-      doc.line(10, startY + 2, 200, startY + 2);
-      startY += 10;
-
-      let total = 0;
-      items.forEach(line => {
-        const [item, qty, price] = line.split('|').map(v => v.trim());
-        doc.text(item || '', 10, startY);
-        doc.text(qty || '', 100, startY);
-        doc.text(price || '', 140, startY);
-        if (!isNaN(qty) && !isNaN(price)) total += parseFloat(qty) * parseFloat(price);
-        startY += 10;
-      });
-
-      doc.setFontSize(13);
-      doc.text("Total: " + total.toFixed(2), 140, startY + 10);
-
-      const date = new Date().toLocaleDateString();
-      doc.setFontSize(10);
-      doc.text("Generated on: " + date, 10, 280);
-
-      doc.save("invoice.pdf");
-    }
-  </script>
-</body>
-</html>
+    function updateSubtotal() {
+      let
