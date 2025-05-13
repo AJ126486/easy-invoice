@@ -1,185 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Easy Invoice</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
-    .container {
-      max-width: 1000px;
-      margin: 30px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5faff;
+      margin: 0;
+      padding: 2rem;
     }
-    h1 { text-align: center; }
-    input, textarea, select {
+    .invoice-box {
+      background: white;
+      padding: 2rem;
+      max-width: 900px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    .section-title {
+      font-weight: bold;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      font-size: 1.2rem;
+    }
+    textarea, input {
       width: 100%;
-      margin: 6px 0 12px 0;
-      padding: 10px;
-      font-size: 1rem;
+      padding: 0.5rem;
+      margin: 0.25rem 0;
       border: 1px solid #ccc;
       border-radius: 4px;
-    }
-    .row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .row > div { flex: 1; min-width: 280px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    table, th, td { border: 1px solid #ccc; }
-    th, td { padding: 10px; text-align: center; }
-    .logo-preview { max-height: 80px; display: block; margin-top: 10px; }
-    .language-selector { text-align: right; margin-bottom: 10px; }
-    .language-selector button {
-      margin-left: 5px;
-      padding: 5px 10px;
       font-size: 0.9rem;
     }
-    button {
-      padding: 10px 20px;
-      margin-top: 20px;
-      font-size: 1rem;
-      cursor: pointer;
+    .row {
+      display: flex;
+      gap: 1rem;
     }
-    .btn-save { background-color: #4CAF50; color: white; border: none; }
-    .btn-save:hover { background-color: #45a049; }
-    .btn-pdf { background-color: #2196F3; color: white; border: none; }
-    .btn-pdf:hover { background-color: #1976D2; }
-    .add-row { margin-top: 10px; }
+    .col {
+      flex: 1;
+    }
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    .invoice-table th, .invoice-table td {
+      border: 1px solid #ddd;
+      padding: 0.5rem;
+      text-align: center;
+    }
+    .add-btn, .save-btn {
+      background: #2b89ff;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1rem;
+    }
+    .add-btn:hover, .save-btn:hover {
+      background: #1a6fd6;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="language-selector">
-      <button onclick="setLang('en')">EN</button>
-      <button onclick="setLang('zh')">中文</button>
-      <button onclick="setLang('ja')">日本語</button>
-      <button onclick="setLang('ko')">한국어</button>
+<div class="invoice-box">
+  <h2>Easy Invoice</h2>
+
+  <div class="section-title">From</div>
+  <textarea placeholder="Bank Details:\nAccount Name\nBSB\nACC\nEmail"></textarea>
+
+  <div class="row">
+    <div class="col">
+      <div class="section-title">Bill To</div>
+      <textarea placeholder="Client Name\nABN\nAddress"></textarea>
     </div>
-
-    <h1 id="title">Easy Invoice</h1>
-
-    <label>Upload Logo:</label>
-    <input type="file" id="logoInput" accept="image/*" />
-    <img id="logoPreview" class="logo-preview" />
-
-    <div class="row">
-      <div>
-        <h3>Sender Info</h3>
-        <input type="text" id="senderName" placeholder="Sender Name" />
-        <textarea id="senderAddress" placeholder="Address"></textarea>
-        <input type="text" id="senderPhone" placeholder="Phone" />
-      </div>
-      <div>
-        <h3>Recipient Info</h3>
-        <input type="text" id="customerName" placeholder="Customer Name" />
-        <textarea id="customerAddress" placeholder="Address"></textarea>
-        <input type="text" id="customerPhone" placeholder="Phone" />
-      </div>
-    </div>
-
-    <h3>Invoice Items</h3>
-    <table id="itemsTable">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Item</th>
-          <th>Qty</th>
-          <th>Price</th>
-          <th>Subtotal</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <button class="add-row" onclick="addItemRow()">➕ Add Item</button>
-
-    <label for="gstInput">GST (%)</label>
-    <input type="number" id="gstInput" placeholder="10" />
-
-    <div class="row">
-      <div><button class="btn-save" onclick="saveDraft()">💾 Save Draft</button></div>
-      <div><button class="btn-pdf" onclick="generatePDF()">📄 Download PDF</button></div>
+    <div class="col">
+      <div class="section-title">Ship To</div>
+      <textarea placeholder="Shipping Address (optional)"></textarea>
     </div>
   </div>
 
-  <script>
-    let logoData = null;
+  <div class="row">
+    <div class="col">
+      <label>Invoice #</label>
+      <input type="text" placeholder="000001">
+    </div>
+    <div class="col">
+      <label>Invoice Date</label>
+      <input type="date">
+    </div>
+    <div class="col">
+      <label>Due Date</label>
+      <input type="date">
+    </div>
+  </div>
 
-    function addItemRow(item = "", qty = "", price = "") {
-      const table = document.querySelector("#itemsTable tbody");
-      const row = document.createElement("tr");
+  <table class="invoice-table">
+    <thead>
+    <tr>
+      <th>Qty</th>
+      <th>Description</th>
+      <th>Unit Price</th>
+      <th>Amount</th>
+    </tr>
+    </thead>
+    <tbody id="invoice-items">
+    <tr>
+      <td><input type="number" value="1"></td>
+      <td><input type="text" placeholder="Item description"></td>
+      <td><input type="number" value="0"></td>
+      <td><input type="number" value="0" readonly></td>
+    </tr>
+    </tbody>
+  </table>
+  <button class="add-btn" onclick="addRow()">+ Add Item</button>
 
-      const index = table.rows.length + 1;
+  <div class="section-title">Terms & Conditions</div>
+  <textarea placeholder="Payment is due within 10 days"></textarea>
 
-      row.innerHTML = `
-        <td>${index}</td>
-        <td><input type="text" value="${item}" oninput="updateSubtotal()" /></td>
-        <td><input type="number" value="${qty}" oninput="updateSubtotal()" /></td>
-        <td><input type="number" value="${price}" oninput="updateSubtotal()" /></td>
-        <td class="subtotal">0.00</td>
-      `;
-      table.appendChild(row);
-      updateSubtotal();
-    }
+  <button class="save-btn">Save Invoice</button>
+</div>
 
-    function updateSubtotal() {
-      const rows = document.querySelectorAll("#itemsTable tbody tr");
-      rows.forEach(row => {
-        const qty = parseFloat(row.children[2].children[0].value) || 0;
-        const price = parseFloat(row.children[3].children[0].value) || 0;
-        const subtotal = qty * price;
-        row.children[4].textContent = subtotal.toFixed(2);
-      });
-    }
-
-    function saveDraft() {
-      const draft = {
-        senderName: document.getElementById("senderName").value,
-        senderAddress: document.getElementById("senderAddress").value,
-        senderPhone: document.getElementById("senderPhone").value,
-        customerName: document.getElementById("customerName").value,
-        customerAddress: document.getElementById("customerAddress").value,
-        customerPhone: document.getElementById("customerPhone").value,
-        gst: document.getElementById("gstInput").value,
-        items: Array.from(document.querySelectorAll("#itemsTable tbody tr")).map(row => ({
-          item: row.children[1].children[0].value,
-          qty: row.children[2].children[0].value,
-          price: row.children[3].children[0].value,
-        }))
-      };
-      localStorage.setItem("invoiceDraft", JSON.stringify(draft));
-      alert("Draft saved!");
-    }
-
-    function loadDraft() {
-      const draft = JSON.parse(localStorage.getItem("invoiceDraft"));
-      if (!draft) return;
-      document.getElementById("senderName").value = draft.senderName || "";
-      document.getElementById("senderAddress").value = draft.senderAddress || "";
-      document.getElementById("senderPhone").value = draft.senderPhone || "";
-      document.getElementById("customerName").value = draft.customerName || "";
-      document.getElementById("customerAddress").value = draft.customerAddress || "";
-      document.getElementById("customerPhone").value = draft.customerPhone || "";
-      document.getElementById("gstInput").value = draft.gst || "";
-      document.querySelector("#itemsTable tbody").innerHTML = "";
-      draft.items.forEach(i => addItemRow(i.item, i.qty, i.price));
-    }
-
-    document.getElementById("logoInput").addEventListener("change", function (event) {
-      const file = event.target.files[0];
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        logoData = e.target.result;
-        document.getElementById("logoPreview").src = logoData;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    function setLang(lang) {
-      alert("多语言功能开发中，当前语言切换为：" + lang);
-    }
-
-    window.onload = loadDraft;
-  </script>
+<script>
+  function addRow() {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="number" value="1"></td>
+      <td><input type="text" placeholder="Item description"></td>
+      <td><input type="number" value="0"></td>
+      <td><input type="number" value="0" readonly></td>
+    `;
+    document.getElementById('invoice-items').appendChild(row);
+  }
+</script>
 </body>
 </html>
