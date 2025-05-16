@@ -2,32 +2,99 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <title id="page-title">Easy Invoice</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Easy Invoice - Home</title>
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0; }
-    header { background-color: #007bff; color: white; padding: 20px 0; text-align: center; }
-    section { padding: 40px 20px; text-align: center; }
-    h1 { margin-bottom: 10px; }
-    .btn { display: inline-block; padding: 15px 30px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; font-size: 18px; }
-    .btn:hover { background-color: #0056b3; }
-    footer { background-color: #222; color: #aaa; text-align: center; padding: 20px 0; position: fixed; bottom: 0; width: 100%; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f0f2f5; }
+    header { background: #007bff; color: white; padding: 20px 0; text-align: center; }
+    nav { text-align: right; padding: 10px 20px; background: #e9ecef; }
+    select { padding: 5px; }
+    main { padding: 40px 20px; text-align: center; }
+    h1 { font-size: 2.5em; }
+    p { font-size: 1.2em; }
+    .start-btn { margin-top: 20px; padding: 10px 30px; font-size: 1.1em; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    .start-btn:hover { background: #218838; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Welcome to Easy Invoice</h1>
-    <p>Create professional invoices in minutes</p>
-  </header>
 
-  <section>
-    <h2>Fast, Easy & International</h2>
-    <p>Supports multi-language, GST/VAT, PDF export, and global payments (Visa, PayPal, etc.).</p>
-    <a class="btn" href="invoice.html">Start Invoicing</a>
-  </section>
+<nav>
+  <label for="language-select">🌐</label>
+  <select id="language-select" onchange="setLanguage()">
+    <option value="en">English</option>
+    <option value="zh">中文</option>
+    <option value="ja">日本語</option>
+    <option value="ko">한국어</option>
+    <option value="de">Deutsch</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+  </select>
+</nav>
 
-  <footer>
-    &copy; 2025 Easy Invoice. All rights reserved.
-  </footer>
+<header>
+  <h1 id="header-title">Welcome to Easy Invoice</h1>
+</header>
+
+<main>
+  <p id="header-description">Create, export, and send invoices easily – for free.</p>
+  <button class="start-btn" onclick="location.href='invoice.html'" id="start-button">Start Invoicing</button>
+</main>
+
+<script>
+const translations = {
+  en: {
+    title: "Easy Invoice",
+    welcome: "Welcome to Easy Invoice",
+    description: "Create, export, and send invoices easily – for free.",
+    start: "Start Invoicing"
+  },
+  zh: {
+    title: "简易发票",
+    welcome: "欢迎使用简易发票",
+    description: "轻松创建、导出和发送发票 – 免费使用。",
+    start: "开始开票"
+  },
+  ja: {
+    title: "簡単請求書",
+    welcome: "簡単請求書へようこそ",
+    description: "請求書を簡単に作成、エクスポート、送信 – 無料で。",
+    start: "請求書作成を開始"
+  },
+  ko: {
+    title: "간편 송장",
+    welcome: "간편 송장에 오신 것을 환영합니다",
+    description: "송장을 쉽게 생성, 내보내기 및 전송 – 무료로 이용하세요.",
+    start: "송장 시작하기"
+  },
+  de: {
+    title: "Einfache Rechnung",
+    welcome: "Willkommen bei Einfache Rechnung",
+    description: "Erstellen, exportieren und senden Sie Rechnungen ganz einfach – kostenlos.",
+    start: "Jetzt starten"
+  },
+  es: {
+    title: "Factura Fácil",
+    welcome: "Bienvenido a Factura Fácil",
+    description: "Cree, exporte y envíe facturas fácilmente, de forma gratuita.",
+    start: "Comenzar a facturar"
+  },
+  fr: {
+    title: "Facture Facile",
+    welcome: "Bienvenue sur Facture Facile",
+    description: "Créez, exportez et envoyez vos factures facilement – gratuitement.",
+    start: "Commencer la facturation"
+  }
+};
+
+function setLanguage() {
+  const lang = document.getElementById('language-select').value;
+  const t = translations[lang] || translations['en'];
+  document.getElementById('page-title').innerText = t.title;
+  document.getElementById('header-title').innerText = t.welcome;
+  document.getElementById('header-description').innerText = t.description;
+  document.getElementById('start-button').innerText = t.start;
+}
+</script>
+
 </body>
 </html>
